@@ -1,0 +1,1 @@
+<div id="product_banner" style="background-image: url(<?php the_field('product_banner', 'option'); ?>)"><div class=""></div></div> 
