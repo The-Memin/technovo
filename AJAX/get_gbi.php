@@ -18,7 +18,7 @@ function get_gbi_pc_callback() {
                 'Titulo' => $product->get_title(),
                 'ImageUrl' => get_the_post_thumbnail_url($procesador_id, 'medium'),
                 'Precio' => $product->get_price(),
-                'procesadorId'=>$procesador_id,
+                'productid'=>$procesador_id,
                 'type'=>"procesador",
             );
 

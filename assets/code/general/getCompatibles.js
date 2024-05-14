@@ -3,96 +3,62 @@ jQuery(document).ready(function($) {
     let step = 0;
     let steps = [];
     let itemSelected = false;
-    const computer={
-        'procesador':"",
-        'motherboard':"",
-        'ram':""
-    }
-    let elementsSelected = [];
-    let compatibilidades = {}
-    const pages = ['Procesador', 'Tarjeta Madre', 'Memoria Ram', 'Enfriamiento']
+    let computer=[];
+    let compatibilidades = []
+    const pages = ['Procesador', 'Tarjeta Madre', 'Memoria Ram', 'Enfriamiento','Gabinetes']
+    
     $(".js-next-step").click(function (e) { 
         
-        const cardSelected = $(".js-select-product.this")
-        const cardType = cardSelected.data('type');
-        const cardId = cardSelected.data('id');
         $(this).addClass('add-limit')
+        
         if (step == 0 && itemSelected) {
-            var data = {
-                'action': 'get_gbi_compatibles',
-                'type': cardType,
-                'id': cardId,
-            };
-            $.post(ajax_object.ajax_url, data, function(response) {
-                compatibilidades = JSON.parse(response);
-                steps = [
-                    compatibilidades.motherboard.tarjeta_madre, 
-                    compatibilidades.ram.memoria_ram,
-                    compatibilidades.enfriamientos.enfriamiento
-                ]
-                setNewStep(step, steps[step]);
-                step++;
-                $(".js-pagina").html(step+1);
-                $(".js-tituloCat").html(pages[step]);
-                $(".js-previous-step").removeClass("previous-limit");
-            });
+            $(".js-previous-step").removeClass("previous-limit");
         }
-        else if(step>0 && itemSelected) {
-            setNewStep(step, steps[step]);
-            if (step<3) 
+        if( itemSelected) {
+            setNewStep(compatibilidades, step);
+            if (step<4) 
                 step++;
             $(".js-pagina").html(step+1);
             $(".js-tituloCat").html(pages[step]);
         }
+        if (computer[step] != null) {
+            setDataInrow(step);
+        }
+        itemSelected = (computer[step] != null);
+        if (itemSelected) {
+            $(".js-next-step").removeClass("add-limit");
+        }
     });
 
     $(".js-previous-step").click(function (e) { 
-        elements = elementsSelected[step-1];
-        if (step-1 == 0) {
-            elements = JSON.parse(localStorage.getItem('procesadores'));
-        }
-        gsap.to(".m-products__item", {
-            duration: .5, 
-            opacity: 0,
-            stagger: .4,
-            onComplete:()=>{
-                $(".m-products").empty();
-                $(".m-row-two__inactive").removeClass('none');
-                $(".m-row-two__active").removeClass('active');
-                makeCards(elements)
-                step--;
-                itemSelected=false;
+        if (step != 0) {
+            elements = compatibilidades[step-1];
+            if (step-1 == 0) {
+                elements = JSON.parse(localStorage.getItem('procesadores'));
+                $(".js-previous-step").addClass('previous-limit');
             }
-        })
-        $(".js-pagina").html(step);
-        $(".js-tituloCat").html(pages[step-1]);
+            $(".m-products").empty();
+            $(".m-row-two__inactive").removeClass('none');
+            $(".m-row-two__active").removeClass('active');
+            makeCards(elements)
+            $(".js-pagina").html(step);
+            $(".js-tituloCat").html(pages[step]);
+            
+            setDataInrow(step-1);
+            step--;
+            itemSelected = (computer[step] != null);
+            if (itemSelected) {
+                $(".js-next-step").removeClass("add-limit");
+            }
+        }
     });
 
-    function setNewStep(step, items) {
-        
-        gsap.to(".m-products__item", {
-            duration: .5, 
-            opacity: 0,
-            stagger: .4,
-            onComplete:()=>{
-                $(".m-products").empty();
-                $(".m-row-two__inactive").removeClass('none');
-                $(".m-row-two__active").removeClass('active');
-                getNextStep(items, step)
-            }
-        })
+    function setNewStep(compatibilidades, step) {
+        $(".m-products").empty();
+        $(".m-row-two__inactive").removeClass('none');
+        $(".m-row-two__active").removeClass('active');
+        makeCards(compatibilidades[step+1])
         itemSelected=false;
-    }
-
-    function getNextStep(arrIds, step) {
-        var data = {
-            'action': 'get_items_from_wc',
-            'ids': arrIds,
-        };
-        $.post(ajax_object.ajax_url, data, function(response) {
-            makeCards(JSON.parse(response));
-            elementsSelected[step+1]=JSON.parse(response); 
-        });
     }
 
 
@@ -100,10 +66,13 @@ jQuery(document).ready(function($) {
         const name = $(this).data('name');
         const type = $(this).data('type');
         if ($(this).hasClass('selected')) {
+            $(this).parent('.m-products__item').removeClass('selected');
             $(this).removeClass('selected');
             $(".m-row-two__inactive").removeClass('none');
             $(".m-row-two__active").removeClass('active');
         } else {
+            $('.m-products .js-select-product').parent('.m-products__item').removeClass('selected');
+            $(this).parent('.m-products__item').addClass('selected');
             $('.m-products .js-select-product').removeClass('selected');
             $(this).addClass('selected');
             $(".m-row-two__inactive").addClass('none');
@@ -120,11 +89,69 @@ jQuery(document).ready(function($) {
 
     $(".js-add-product").click(function (e) { 
         const cardSelected = $(".js-select-product.selected")
+        const cardId = cardSelected.data('id');
+        const productId = cardSelected.data('productid');
         $(".js-select-product").removeClass("this");
         $(cardSelected).addClass("this");
-        itemSelected= true
         $(".js-next-step").removeClass("add-limit");
+        $(".l-catalogo__container__rows--three").addClass("show");
+        $(".js-open-resumen").addClass("abierto");
+        $(".background").css('display', 'block');
+
+        if (step == 0) {
+            let confirmacion = false;
+            if (computer[0] != null && computer[0].id!= productId && computer[1]!= null) {
+                confirmacion = confirm('Todos sus componentes dependen de la eleccion del procesador, al cambiar de procesador, se borrara su lista de componentes. ¿Esta seguro de realizar esta accion?')
+            }
+            if (confirmacion || computer[1] == null) {
+                if (confirmacion) {
+                    deleteComponents();
+                }
+                var data = {
+                    'action': 'get_gbi_compatibles',
+                    'id': cardId,
+                };
+                $.post(ajax_object.ajax_url, data, function(response) {
+                    compatibilidades = JSON.parse(response);
+                    addProductToList(cardSelected);
+                    console.log(compatibilidades)
+                });
+            }
+            
+        }
+        else{
+            addProductToList(cardSelected);
+        }
+        
+        itemSelected= true;
     });
+
+    function addProductToList(product) {
+        let precio = product.data('precio');
+
+        $(`#item-${step}`).addClass('selected');
+        $(`#item-${step} h3.product .product__name`).html(product.data('name'));
+        $(`#item-${step} h3.product .product__price`).html(formatearNumero(precio));
+        const cardId = product.data('productid');
+        const productPrecio = product.data('precio');
+        computer[step] = {id: cardId, precio: productPrecio};
+        $('.m-component__precioTotal').html(formatearNumero(calcPrecio()));
+    }
+
+    function deleteComponents() {
+        computer = []
+        $('.m-item-list').removeClass('selected');
+        $('.m-item-list h3.product span').html('');
+    }
+
+    function calcPrecio() {
+        let precio = 0;
+        computer.forEach(element =>{
+            console.log(element.precio)
+            precio += parseFloat(element.precio);
+        })
+        return precio;
+    }
 
     function makeCards(arr) {
         arr.forEach( (item, index )=> {
@@ -133,28 +160,38 @@ jQuery(document).ready(function($) {
                 <div class='m-products__item__info'> 
                     <div class='m-products__item__info__img' style='background-image: url("${item.ImageUrl}")'> </div> 
                     <p class='m-products__item__info__nombre'>  ${item.Titulo} </p> 
-                    <p class='m-products__item__info__precio'> ${item.Precio} </p> 
+                    <p class='m-products__item__info__precio'> ${formatearNumero(item.Precio)} </p> 
                 </div>  
                 <div class= 'm-products__item__btn js-select-product' 
                     data-name='${item.Titulo}' }
                     data-precio='${item.Precio}' 
                     data-imgurl='${item.ImagenUrl}' 
-                    data-modelo='Modelo' 
-                    data-id="${item.ID}"
-                    data-type="${item.type}"> 
-                        <span>Ver Info</span>
+                    data-type='${item.type}' 
+                    data-productid='${item.productid}'
+                    data-id="${item.ID}"> 
+                        <span>Ver Info </span>
                         <span>Visualizando</span> 
                 </div>  
             </div> `;
 
             $(".l-catalogo__container__rows--one .m-steps .step-1 .m-products").append(cardProduct);
         })
-        gsap.from('.m-products__item',{
-            duration: 1,
-            y:20,
-            opacity:0,
-            stagger: .3,
-        })
+    }
+
+    function formatearNumero(cadenaNumero) {
+        let numero = parseFloat(cadenaNumero);
+        if (isNaN(numero)) {
+            return 'Sin precio aun'
+        }
+
+        let opciones = {
+            style: 'currency',
+            currency: 'MXN',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        };
+        let formateador = new Intl.NumberFormat('en-US', opciones);
+        return formateador.format(numero).replace('MX', '').trim() + ' MN';
     }
 
     $(".js-close-catalogo").click(function (e) { 
@@ -163,5 +200,52 @@ jQuery(document).ready(function($) {
         $(".m-row-two__active").removeClass('active');
         $(".js-pagina").html("1");
         $(".js-tituloCat").html("Procesador");
+        deleteComponents();
     });
+
+
+    $('.m-item-list').click(function (e) { 
+        if ($(this).hasClass('selected')) {
+            console.log($(this).data('step'))
+            const currentStep = $(this).data('step');
+            let stepProducts = compatibilidades[currentStep]
+            if (currentStep == 0) {
+                stepProducts = JSON.parse(localStorage.getItem('procesadores'));
+                $(".js-previous-step").addClass('previous-limit');
+            }
+            $(".m-products").empty();
+            $(".m-row-two__inactive").removeClass('none');
+            $(".m-row-two__active").removeClass('active');
+            $(".l-catalogo__container__rows--three").removeClass("show");
+            $(".js-open-resumen").removeClass("abierto");
+            $(".background").css('display', 'none');
+            
+            makeCards(stepProducts);
+            
+            step = currentStep;
+            setDataInrow(step);
+            if (step > 0) {
+                $('.js-previous-step').removeClass('previous-limit');
+            }
+            itemSelected = (computer[step] != null);
+            if (itemSelected) {
+                $(".js-next-step").removeClass("add-limit");
+            }
+            $(".js-pagina").html(step+1);
+            $(".js-tituloCat").html(pages[step]);
+        }
+    });
+
+    function setDataInrow(currentStep) {
+        const currentItem = $(`.m-products__item__btn[data-productid="${computer[currentStep].id}"]`)
+        const currentItemParent = currentItem.parent('.m-products__item');
+        const name = currentItem.data('name');
+        const type = currentItem.data('type');
+        $(currentItem).addClass('selected');
+        $(currentItemParent).addClass('selected');
+
+        $(".m-row-two__inactive").addClass('none');
+        $(".m-row-two__active").addClass('active');
+        setDataProduct(name, type)
+    }
 });

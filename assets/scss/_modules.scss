@@ -3750,3 +3750,74 @@ html {
   }
 }
 
+.m-items-list{
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  padding: 2em 1em;
+}
+
+.m-item-list{
+  display: flex;
+  height: 100%;
+  gap: 1.6em;
+  align-items: center;
+  border-radius: 6px;
+  padding: .5em .4em;
+
+  &.selected{
+    cursor: pointer;
+    svg{
+      path{
+        fill: $blue;
+      }
+    }
+    h3{
+      display: none;
+    }
+    h3.product{
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      color: $blue;
+
+      .product__price{
+        color: #1f9bc0;
+      }
+    }
+
+    &:hover{
+      svg{
+        path{
+          fill: #1f9bc0;
+        }
+      }
+      h3.product{
+        color: #1f9bc0;
+      }
+    }
+  }
+
+  &__figure{
+    height: 100%;
+    aspect-ratio: 1;
+    height: 2.8em;
+    svg{
+      height: 100%;
+      width: 100%;
+      path{
+        fill: #888;
+      }
+    }
+  }
+  &__label{
+    h3{
+      text-transform:none;
+      font-size: .88em;
+      color: #55565a;
+    }
+    h3.product{
+      display: none;
+    }
+  }
+}

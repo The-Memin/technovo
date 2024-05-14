@@ -2300,6 +2300,9 @@ Main files where load all the rest files
         @include desktop{
             overflow: hidden;
         }
+        .l-catalogo__container{
+            transform: scale(1);
+        }
     }
     &__container{
         width: 100%;
@@ -2566,7 +2569,7 @@ Main files where load all the rest files
                 }
                 @include desktop{
                     position: absolute;
-                    transform: translateX(calc(100% - 100px));
+                    transform: translateX(calc(100% - 5em));
                     height: 100vh;
                     padding: 0;
                     width: 600px;
@@ -2586,7 +2589,7 @@ Main files where load all the rest files
                 &:hover{
                     //transform: translateX(calc(100% - 16vw));
                     @include desktop{
-                        transform: translateX(calc(100% - 120px));
+                        transform: translateX(calc(100% - 90px));
                         
                     }
                 }
